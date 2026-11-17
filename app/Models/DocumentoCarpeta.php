@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DocumentoCarpeta extends Model
 {
+    use Auditable;
+
     protected $table = 'documentos_carpeta';
 
     protected $primaryKey = 'documento_carpeta_id';

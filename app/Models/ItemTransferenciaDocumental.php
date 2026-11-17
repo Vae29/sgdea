@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ItemTransferenciaDocumental extends Model
 {
+    use Auditable;
+
     protected $table = 'items_transferencia_documental';
 
     protected $primaryKey = 'item_tranferencia_id';

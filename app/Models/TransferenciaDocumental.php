@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TransferenciaDocumental extends Model
 {
+    use Auditable;
+
     protected $table = 'transferencias_documentales';
 
     protected $primaryKey = 'transferencia_id';

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -15,7 +16,7 @@ use Illuminate\Notifications\Notifiable;
 #[Hidden(['contrasena'])]
 class Usuario extends Authenticatable
 {
-    use Notifiable;
+    use Auditable, Notifiable;
 
     protected $table = 'usuarios';
 
@@ -50,6 +51,28 @@ class Usuario extends Authenticatable
     {
         return $this->belongsToMany(Rol::class, 'rol_usuario', 'usuario_id', 'rol_id')
             ->withPivot('rol_usuario_id', 'fecha_creacion', 'fecha_modificacion');
+    }
+
+    public function tieneRol(string $nombreRol): bool
+    {
+        return $this->roles()->where('roles.nombre', $nombreRol)->exists();
+    }
+
+    public function tienePermiso(string $permiso): bool
+    {
+        if (! $this->activo) {
+            return false;
+        }
+
+        $permisosPorRol = config('sgdea_permisos.roles', []);
+
+        foreach ($this->roles as $rol) {
+            if (in_array($permiso, $permisosPorRol[$rol->nombre] ?? [], true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #[Scope]

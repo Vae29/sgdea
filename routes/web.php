@@ -23,39 +23,72 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// ===== TEMPORAL: solo para revisar el diseño del SGDEA. Retirar al integrar el backend. =====
 Route::prefix('sgdea')->name('sgdea.')->group(function () {
-    // Acceso
     Route::view('/login', 'sgdea.auth.login')->name('login');
     Route::view('/recuperar-contrasena', 'sgdea.auth.forgot-password')->name('password.request');
-    Route::view('/dashboard', 'sgdea.dashboard.index')->name('dashboard');
+    Route::middleware('auth')->group(function () {
+        Route::view('/dashboard', 'sgdea.dashboard.index')
+            ->middleware('can:dashboard.ver')
+            ->name('dashboard');
 
-    // Instrumentos archivísticos
-    Route::view('/ccd', 'sgdea.ccd.index')->name('ccd.index');
-    Route::view('/trd', 'sgdea.trd.index')->name('trd.index');
+        Route::view('/ccd', 'sgdea.ccd.index')
+            ->middleware('can:ccd.ver')
+            ->name('ccd.index');
 
-    // Radicación (las rutas «nueva» van ANTES de las que llevan {id})
-    Route::view('/radicaciones', 'sgdea.radicaciones.index')->name('radicaciones.index');
-    Route::view('/radicaciones/nueva', 'sgdea.radicaciones.create')->name('radicaciones.create');
-    Route::view('/radicaciones/{id}', 'sgdea.radicaciones.show')->name('radicaciones.show');
+        Route::view('/trd', 'sgdea.trd.index')
+            ->middleware('can:trd.ver')
+            ->name('trd.index');
 
-    // Documentos digitales
-    Route::view('/documentos', 'sgdea.documentos.index')->name('documentos.index');
-    Route::view('/documentos/nuevo', 'sgdea.documentos.create')->name('documentos.create');
-    Route::view('/documentos/{id}', 'sgdea.documentos.show')->name('documentos.show');
+        Route::view('/radicaciones', 'sgdea.radicaciones.index')
+            ->middleware('can:radicacion.ver')
+            ->name('radicaciones.index');
+        Route::view('/radicaciones/nueva', 'sgdea.radicaciones.create')
+            ->middleware('can:radicacion.crear')
+            ->name('radicaciones.create');
+        Route::view('/radicaciones/{id}', 'sgdea.radicaciones.show')
+            ->middleware('can:radicacion.ver')
+            ->name('radicaciones.show');
 
-    // Carpetas y cierre
-    Route::view('/carpetas', 'sgdea.carpetas.index')->name('carpetas.index');
-    Route::view('/carpetas/nueva', 'sgdea.carpetas.create')->name('carpetas.create');
-    Route::view('/carpetas/{id}', 'sgdea.carpetas.show')->name('carpetas.show');
-    Route::view('/cierre', 'sgdea.cierre.index')->name('cierre.index');
-    Route::view('/cierre/{id}', 'sgdea.cierre.show')->name('cierre.show');
+        Route::view('/documentos', 'sgdea.documentos.index')
+            ->middleware('can:documento.ver')
+            ->name('documentos.index');
+        Route::view('/documentos/nuevo', 'sgdea.documentos.create')
+            ->middleware('can:documento.crear')
+            ->name('documentos.create');
+        Route::view('/documentos/{id}', 'sgdea.documentos.show')
+            ->middleware('can:documento.ver')
+            ->name('documentos.show');
 
-    // Inventario, transferencias, usuarios y auditoría
-    Route::view('/fuid', 'sgdea.fuid.index')->name('fuid.index');
-    Route::view('/fuid/{id}', 'sgdea.fuid.show')->name('fuid.show');
-    Route::view('/transferencias', 'sgdea.transferencias.index')->name('transferencias.index');
-    Route::view('/usuarios', 'sgdea.usuarios.index')->name('usuarios.index');
-    Route::view('/auditorias', 'sgdea.auditorias.index')->name('auditorias.index');
+        Route::view('/carpetas', 'sgdea.carpetas.index')
+            ->middleware('can:carpeta.ver')
+            ->name('carpetas.index');
+        Route::view('/carpetas/nueva', 'sgdea.carpetas.create')
+            ->middleware('can:carpeta.crear')
+            ->name('carpetas.create');
+        Route::view('/carpetas/{id}', 'sgdea.carpetas.show')
+            ->middleware('can:carpeta.ver')
+            ->name('carpetas.show');
+        Route::view('/cierre', 'sgdea.cierre.index')
+            ->middleware('can:carpeta.cerrar')
+            ->name('cierre.index');
+        Route::view('/cierre/{id}', 'sgdea.cierre.show')
+            ->middleware('can:carpeta.cerrar')
+            ->name('cierre.show');
+
+        Route::view('/fuid', 'sgdea.fuid.index')
+            ->middleware('can:fuid.ver')
+            ->name('fuid.index');
+        Route::view('/fuid/{id}', 'sgdea.fuid.show')
+            ->middleware('can:fuid.ver')
+            ->name('fuid.show');
+        Route::view('/transferencias', 'sgdea.transferencias.index')
+            ->middleware('can:transferencia.ver')
+            ->name('transferencias.index');
+        Route::view('/usuarios', 'sgdea.usuarios.index')
+            ->middleware('can:usuarios.administrar')
+            ->name('usuarios.index');
+        Route::view('/auditorias', 'sgdea.auditorias.index')
+            ->middleware('can:auditoria.ver')
+            ->name('auditorias.index');
+    });
 });
-// ===== FIN TEMPORAL =====

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class SgdeaPasswordResetToken extends Model
 {
+    use Auditable;
+
     protected $table = 'sgdea_password_reset_tokens';
 
     protected $primaryKey = 'pass_reset_tokens_id';

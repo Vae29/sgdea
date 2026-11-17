@@ -1,5 +1,5 @@
 {{--
-  Módulo 7 · Usuarios y control de acceso (SOLO VISUAL; sin autenticación ni autorización reales).
+  Módulo 7 · Usuarios y control de acceso.
   Variables del futuro controlador: $usuarios (con roles y oficina), $roles, $unidades, $resumenNiveles, $esDemo.
   Tablas relacionadas: usuarios, roles, rol_usuario, oficinas_productoras.
 --}}
@@ -17,7 +17,9 @@
     $unidades = $unidades ?? $demoCcd['unidades'];
     $ccd = (require resource_path('sgdea/presenters/ccd.php'))($demoCcd['fondo'], $unidades);
     $unidadOpciones = collect($unidades)->mapWithKeys(fn ($u) => ['u:' . $u['codigo'] => $u['codigo'] . ' · ' . $u['nombre']])->all();
-    $rolOpciones = collect($roles)->pluck('nombre')->all();
+    $permisos = config('sgdea_permisos.permisos');
+    $permisosPorRol = config('sgdea_permisos.roles');
+    $rolOpciones = array_keys($permisosPorRol);
     $conteoRol = collect($usuarios)->flatMap(fn ($u) => $u['roles'])->countBy()->all();
     $carpetas = require resource_path('sgdea/demo/carpetas.php');
     $documentos = require resource_path('sgdea/demo/documentos.php');
@@ -30,7 +32,7 @@
     <x-sgdea.page-header>
         <x-slot:actions><x-sgdea.button icon="plus" data-usuario-nuevo>Nuevo usuario</x-sgdea.button></x-slot:actions>
     </x-sgdea.page-header>
-    @if ($esDemo)<x-sgdea.alert type="warning" title="Datos de demostración">Usuarios ficticios. Esta pantalla no autentica ni autoriza: solo representa la administración de usuarios, roles y niveles de acceso.</x-sgdea.alert>@endif
+    @if ($esDemo)<x-sgdea.alert type="warning" title="Datos de demostración">Los usuarios de esta vista son ficticios. Los permisos iniciales son provisionales y su catálogo y asignación por rol se centralizan en la configuración del SGDEA.</x-sgdea.alert>@endif
 
     <div data-tabs>
         <div class="tabs" role="tablist">
@@ -64,7 +66,7 @@
         </div>
 
         <div class="tab-panel" id="usr-tab-roles">
-            <x-sgdea.alert type="info">La descripción de cada rol es orientativa (tomada de las historias de usuario). Los permisos exactos por rol están por definir con la empresa.</x-sgdea.alert>
+            <x-sgdea.alert type="info">La asignación inicial de permisos por rol es provisional y puede ajustarse en la configuración central del SGDEA.</x-sgdea.alert>
             <div class="grid grid-3">
                 @foreach ($roles as $r)
                     <x-sgdea.card :title="$r['nombre']">
@@ -75,18 +77,13 @@
             </div>
 
             <x-sgdea.card title="Permisos por rol" class="mt-2" :flush="true">
-                <x-slot:actions><x-sgdea.badge tone="warning" label="Sin asignar · pendiente de definición" :dot="false" /></x-slot:actions>
-                <p class="small muted" style="margin:.8rem 1rem">Esquema RBAC (HU-GDO-07). Los permisos son una propuesta por módulo; la empresa debe definir qué rol tiene cada uno. Las casillas no guardan nada en esta demostración.</p>
+                <x-slot:actions><x-sgdea.badge tone="warning" label="Asignación provisional" :dot="false" /></x-slot:actions>
+                <p class="small muted" style="margin:.8rem 1rem">El catálogo de permisos y su asignación inicial por rol se definen en <span class="mono">config/sgdea_permisos.php</span>. Las casillas muestran esta matriz, pero todavía no guardan cambios.</p>
                 <x-sgdea.table id="tbl-permisos" :searchable="false" :cols="6">
                     <x-slot:head><tr><th>Permiso</th>@foreach ($rolOpciones as $r)<th class="text-right">{{ $r }}</th>@endforeach</tr></x-slot:head>
-                    @foreach (['dashboard.ver' => 'Ver el panel principal', 'ccd.ver' => 'Consultar el CCD', 'ccd.administrar' => 'Administrar el CCD', 'trd.ver' => 'Consultar la TRD', 'trd.administrar' => 'Parametrizar la TRD',
-                        'radicacion.ver' => 'Consultar radicaciones', 'radicacion.crear' => 'Radicar comunicaciones', 'documento.ver' => 'Consultar documentos', 'documento.crear' => 'Registrar documentos', 'documento.descargar' => 'Descargar documentos',
-                        'carpeta.ver' => 'Consultar carpetas', 'carpeta.crear' => 'Abrir carpetas', 'carpeta.incorporar' => 'Incorporar documentos', 'carpeta.cerrar' => 'Cerrar carpetas',
-                        'fuid.ver' => 'Consultar el FUID', 'fuid.exportar' => 'Exportar el FUID', 'usuarios.administrar' => 'Administrar usuarios y roles', 'auditoria.ver' => 'Consultar la auditoría',
-                        'transferencia.ver' => 'Consultar transferencias', 'transferencia.crear' => 'Crear transferencias', 'transferencia.aprobar' => 'Aprobar transferencias',
-                        'disposicion.solicitar' => 'Solicitar disposición final', 'disposicion.aprobar' => 'Aprobar disposición final'] as $perm => $texto)
+                    @foreach ($permisos as $perm => $texto)
                         <tr><td><span class="mono small">{{ $perm }}</span><div class="small muted">{{ $texto }}</div></td>
-                            @foreach ($rolOpciones as $r)<td class="text-right"><input type="checkbox" class="perm-chk" data-rol="{{ $r }}" data-perm="{{ $perm }}" aria-label="{{ $perm }} para {{ $r }}" style="width:auto"></td>@endforeach</tr>
+                            @foreach ($rolOpciones as $r)<td class="text-right"><input type="checkbox" class="perm-chk" data-rol="{{ $r }}" data-perm="{{ $perm }}" aria-label="{{ $perm }} para {{ $r }}" @checked(in_array($perm, $permisosPorRol[$r] ?? [], true)) style="width:auto"></td>@endforeach</tr>
                     @endforeach
                 </x-sgdea.table>
             </x-sgdea.card>

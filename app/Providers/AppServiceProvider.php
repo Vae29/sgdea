@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Usuario;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        foreach (array_keys(config('sgdea_permisos.permisos', [])) as $permiso) {
+            Gate::define(
+                $permiso,
+                fn (Usuario $usuario): bool => $usuario->tienePermiso($permiso),
+            );
+        }
     }
 }

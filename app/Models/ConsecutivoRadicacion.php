@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class ConsecutivoRadicacion extends Model
 {
+    use Auditable;
+
     protected $table = 'consecutivos_radicacion';
 
     protected $primaryKey = 'consecutivo_id';

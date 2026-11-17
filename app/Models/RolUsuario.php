@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RolUsuario extends Model
 {
+    use Auditable;
+
     protected $table = 'rol_usuario';
 
     protected $primaryKey = 'rol_usuario_id';
