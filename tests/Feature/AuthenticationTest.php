@@ -2,6 +2,7 @@
 
 use App\Models\Usuario;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
@@ -58,6 +59,39 @@ test('login rejects an inactive account', function () {
     $response->assertRedirect(route('login'));
     $response->assertSessionHasErrors('correo');
     $this->assertGuest();
+});
+
+test('Auth attempt identifies active users by email and rejects inactive users', function () {
+    $activeUsuario = createSgdeaUser(['correo' => 'activo@example.test']);
+    $inactiveUsuario = createSgdeaUser([
+        'correo' => 'inactivo@example.test',
+        'activo' => false,
+    ]);
+
+    expect(config('auth.providers.users.model'))->toBe(Usuario::class)
+        ->and(Auth::attempt([
+            'correo' => $activeUsuario->correo,
+            'password' => 'password-segura',
+            'activo' => 1,
+        ]))->toBeTrue()
+        ->and(Auth::id())->toBe($activeUsuario->correo);
+
+    Auth::logout();
+
+    expect(Auth::attempt([
+        'correo' => $inactiveUsuario->correo,
+        'password' => 'password-segura',
+        'activo' => 1,
+    ]))->toBeFalse()
+        ->and(Auth::guest())->toBeTrue();
+});
+
+test('remember tokens are disabled because usuarios has no remember token column', function () {
+    $usuario = createSgdeaUser();
+
+    expect(Schema::hasColumn('usuarios', 'remember_token'))->toBeFalse()
+        ->and($usuario->getRememberTokenName())->toBe('')
+        ->and($usuario->getRememberToken())->toBeNull();
 });
 
 test('login rejects an incorrect password', function () {

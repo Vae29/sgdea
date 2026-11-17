@@ -23,6 +23,8 @@ class Usuario extends Authenticatable
 
     protected $guarded = [];
 
+    protected $rememberTokenName = '';
+
     public $timestamps = true;
 
     public const CREATED_AT = 'fecha_creacion';
@@ -59,5 +61,10 @@ class Usuario extends Authenticatable
     public function getAuthPasswordName(): string
     {
         return 'contrasena';
+    }
+
+    public function getAuthIdentifierName(): string
+    {
+        return 'correo';
     }
 }
