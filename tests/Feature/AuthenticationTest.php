@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\FondoDocumental;
+use App\Models\Rol;
 use App\Models\Usuario;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -33,19 +35,57 @@ test('login authenticates with an active account from usuarios', function () {
         'password' => 'password-segura',
     ]);
 
-    $response->assertRedirect(route('dashboard'));
+    $response->assertRedirect(route('sgdea.dashboard'));
     $this->assertAuthenticatedAs($usuario);
 });
 
-test('dashboard requires authentication and displays the authenticated user', function () {
-    $this->get(route('dashboard'))->assertRedirect(route('login'));
+test('protected SGDEA routes redirect guests to login', function () {
+    $this->get(route('sgdea.dashboard'))->assertRedirect(route('login'));
+    $this->get(route('sgdea.usuarios.index'))->assertRedirect(route('login'));
+});
 
-    $usuario = createSgdeaUser();
+test('the SGDEA panel shows the authenticated user role and office without demo data', function () {
+    $fondo = FondoDocumental::create([
+        'codigo' => 'F-AUTH-TEST',
+        'nombre' => 'Fondo de autenticación',
+        'activo' => true,
+    ]);
+    $unidad = $fondo->unidades()->create([
+        'codigo' => 'U-AUTH-TEST',
+        'nombre' => 'Unidad de autenticación',
+        'activo' => true,
+    ]);
+    $oficina = $unidad->oficinas()->create([
+        'codigo' => 'O-AUTH-TEST',
+        'nombre' => 'Oficina real',
+        'activo' => true,
+    ]);
+    $usuario = createSgdeaUser(['oficina_productora_id' => $oficina->getKey()]);
+    $rol = Rol::create(['nombre' => 'Administrador']);
+    $usuario->roles()->attach($rol->getKey(), [
+        'fecha_creacion' => now(),
+        'fecha_modificacion' => now(),
+    ]);
 
     $this->actingAs($usuario)
-        ->get(route('dashboard'))
+        ->get(route('sgdea.dashboard'))
         ->assertOk()
-        ->assertSeeText($usuario->nombre_completo);
+        ->assertSeeText($usuario->nombre_completo)
+        ->assertSeeText('Administrador')
+        ->assertSeeText('Oficina real')
+        ->assertSeeText('Sin notificaciones.')
+        ->assertDontSee('MODO DEMOSTRACIÓN DEL FRONTEND')
+        ->assertDontSee('Usuario de demostración');
+});
+
+test('an authenticated inactive account is logged out from SGDEA', function () {
+    $usuario = createSgdeaUser(['activo' => false]);
+
+    $this->actingAs($usuario)
+        ->get(route('sgdea.dashboard'))
+        ->assertRedirect(route('login'));
+
+    $this->assertGuest();
 });
 
 test('login rejects an inactive account', function () {

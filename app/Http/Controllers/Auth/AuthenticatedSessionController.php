@@ -12,7 +12,7 @@ class AuthenticatedSessionController extends Controller
 {
     public function create(): View
     {
-        return view('auth.login');
+        return view('sgdea.auth.login');
     }
 
     public function store(Request $request): RedirectResponse
@@ -30,7 +30,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('sgdea.dashboard'));
     }
 
     public function destroy(Request $request): RedirectResponse

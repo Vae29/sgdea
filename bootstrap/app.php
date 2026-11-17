@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureUsuarioActivo;
 use App\Models\Auditoria;
 use App\Services\AuditoriaService;
 use Illuminate\Foundation\Application;
@@ -15,7 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'active' => EnsureUsuarioActivo::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
