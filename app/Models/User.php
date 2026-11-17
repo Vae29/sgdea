@@ -17,6 +17,14 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    protected $table = 'users';
+
+    protected $primaryKey = 'id';
+
+    protected $guarded = [];
+
+    public $timestamps = true;
+
     /**
      * Get the attributes that should be cast.
      *
